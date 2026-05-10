@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TagMaster v5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--bg2:#141720;--bg3:#1c2030;--bg4:#242840;
+  --border:#2a2f4a;--border2:#3a4060;
+  --text:#e8eaf6;--text2:#8892b0;--text3:#4a5270;
+  --accent:#7c6af7;--accent2:#5a4fd4;
+  --green:#4ade80;--green-bg:#0a2018;--green-bd:#1a4a2a;
+  --red:#f87171;--red-bg:#2a0f0f;--red-bd:#4a1a1a;
+  --amber:#fbbf24;--amber-bg:#1e1500;
+  --teal:#2dd4bf;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --sans:'Noto Sans KR',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6;overflow-x:hidden;}
+.app{max-width:680px;margin:0 auto;padding:0 .875rem;display:flex;flex-direction:column;min-height:100vh;}
+.screen{display:none;flex-direction:column;flex:1;padding:1.25rem 0 2rem;}
+.screen.active{display:flex;}
+
+/* ── TOPNAV ── */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:.55rem .875rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:.875rem;}
+.nav-left{display:flex;align-items:center;gap:.4rem;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:500;white-space:nowrap;}
+.b-streak{background:#1e1200;color:var(--amber);border:1px solid #3a2400;}
+.b-xp{background:#100a30;color:var(--accent);border:1px solid #221550;}
+.b-lv{font-size:11px;color:var(--teal);font-family:var(--mono);}
+
+/* ── XP BAR ── */
+.xp-wrap{margin-bottom:.875rem;}
+.xp-row{display:flex;justify-content:space-between;margin-bottom:3px;}
+.xp-row span{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.xp-track{height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:99px;transition:width .6s ease;}
+
+/* ── HOME ── */
+.home-hero{text-align:center;padding:.875rem 0 1.25rem;}
+.logo{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--accent);letter-spacing:-1px;margin-bottom:3px;}
+.logo span{color:var(--teal);}
+.tagline{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.sec-label{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;font-family:var(--mono);margin-bottom:.5rem;}
+
+/* ── TOPIC CHIPS ── */
+.chip-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.875rem;}
+.t-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;border-radius:99px;
+  background:var(--bg2);border:1px solid var(--border);
+  cursor:pointer;transition:all .12s;
+  font-size:11px;font-weight:500;color:var(--text2);
+  font-family:var(--mono);white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.t-chip:hover{border-color:var(--border2);color:var(--text);}
+.t-chip.sel{border-color:var(--accent);background:#14103a;color:var(--accent);}
+.t-chip .cnt{font-size:9px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:99px;border:1px solid var(--border);}
+.t-chip.sel .cnt{color:#9080ff;}
+
+/* ── MODE ROW ── */
+.mode-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:.875rem;}
+.m-btn{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.55rem .25rem;cursor:pointer;text-align:center;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.m-btn:hover{border-color:var(--border2);}
+.m-btn.sel{border-color:var(--teal);background:#081a18;}
+.m-btn .mi{font-size:15px;line-height:1;}
+.m-btn .mn{font-size:10px;color:var(--text2);font-family:var(--mono);margin-top:2px;}
+.m-btn.sel .mn{color:var(--teal);}
+
+.start-btn{width:100%;padding:.875rem;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:var(--mono);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.start-btn:hover{background:var(--accent2);}
+.start-btn:active{transform:scale(.98);}
+
+/* ── SESSION INFO ── */
+.sess-info{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:5px 10px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;margin-bottom:.75rem;
+  font-family:var(--mono);font-size:11px;color:var(--text3);
+}
+.si-topic{color:var(--teal);}
+.si-mode{color:var(--amber);}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin-bottom:.875rem;}
+.prog-row{display:flex;justify-content:space-between;margin-bottom:3px;}
+.prog-row span{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.prog-track{height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;border:1px solid var(--border);}
+.prog-fill{height:100%;background:var(--green);border-radius:99px;transition:width .4s ease;}
+
+/* ── QCARD ── */
+.qcard{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.125rem;margin-bottom:.75rem;}
+.qt-tag{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px;margin-bottom:.75rem;letter-spacing:.03em;}
+.qt-flash{background:#0a2018;color:var(--green);border:1px solid #1a4a2a;}
+.qt-blank{background:#100a30;color:var(--accent);border:1px solid #221550;}
+.qt-type{background:#1e1200;color:var(--amber);border:1px solid #3a2400;}
+.q-text{font-size:15px;font-weight:500;color:var(--text);margin-bottom:.875rem;line-height:1.65;}
+.code-blk{
+  background:#07090e;border:1px solid var(--border);border-radius:9px;
+  padding:.75rem 1rem;font-family:var(--mono);font-size:12.5px;
+  line-height:1.9;margin-bottom:.875rem;color:var(--text2);
+  white-space:pre-wrap;word-break:break-all;overflow-x:auto;
+}
+.bslot{display:inline-block;background:#14103a;color:var(--accent);border:1.5px dashed #5040c0;border-radius:4px;padding:0 8px;min-width:52px;text-align:center;font-weight:700;font-size:12px;}
+
+/* ── OPTS ── */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.opts.col1{grid-template-columns:1fr;}
+.opt{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:.7rem .875rem;font-family:var(--mono);font-size:12.5px;color:var(--text);cursor:pointer;transition:all .1s;text-align:left;line-height:1.4;-webkit-tap-highlight-color:transparent;}
+.opt:hover:not(:disabled){border-color:var(--border2);background:var(--bg4);}
+.opt.correct{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.opt.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+.opt:disabled{cursor:default;}
+
+/* ── TYPE INPUT ── */
+.type-row{display:flex;gap:6px;}
+/* font-size 16px = iOS 자동 줌 방지 핵심 */
+.t-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:.7rem .875rem;font-family:var(--mono);font-size:16px;color:var(--text);outline:none;transition:border-color .15s;-webkit-appearance:none;min-width:0;}
+.t-inp:focus{border-color:var(--accent);}
+.t-inp.correct{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+.t-inp.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+.t-inp:disabled{cursor:default;}
+.ok-btn{padding:.7rem .875rem;background:var(--accent);color:#fff;border:none;border-radius:9px;font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.ok-btn:hover{background:var(--accent2);}
+
+/* ── FEEDBACK ── */
+.fb{padding:.65rem .875rem;border-radius:9px;font-size:12px;line-height:1.5;margin-bottom:.6rem;display:none;font-family:var(--mono);}
+.fb.show{display:block;}
+.fb.ok{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green);}
+.fb.ng{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);}
+
+/* ── PREV REVIEW ── */
+.prev-rev{padding:.55rem .875rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--text3);display:none;margin-bottom:.6rem;}
+.prev-rev.show{display:block;}
+.pr-lbl{font-size:9px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+.pr-ok{color:var(--green);}
+.pr-ng{color:var(--red);}
+
+/* ── NAV BTNS ── */
+.next-btn{display:none;width:100%;padding:.7rem;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:9px;font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;transition:all .12s;margin-bottom:.55rem;-webkit-tap-highlight-color:transparent;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--bg4);border-color:var(--accent);}
+.q-actions{display:flex;gap:6px;}
+.nav-btn{flex:1;padding:.6rem;border-radius:9px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:var(--mono);font-size:11px;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.nav-btn:hover{border-color:var(--border2);color:var(--text);}
+.nav-btn:disabled{opacity:.3;cursor:default;}
+
+/* ── RESULT ── */
+.res-hero{text-align:center;padding:1.5rem 0 .875rem;}
+.res-emoji{font-size:50px;margin-bottom:.35rem;}
+.res-title{font-family:var(--mono);font-size:20px;font-weight:700;}
+.res-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:1.125rem 0;}
+.res-box{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:.875rem;text-align:center;}
+.res-val{font-family:var(--mono);font-size:22px;font-weight:700;}
+.rv-g{color:var(--green);}
+.rv-a{color:var(--accent);}
+.rv-o{color:var(--amber);}
+.res-lbl{font-size:10px;color:var(--text3);margin-top:3px;}
+.again-btn{width:100%;padding:.875rem;margin-bottom:.55rem;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:var(--mono);font-size:13px;font-weight:700;cursor:pointer;}
+.again-btn:hover{background:var(--accent2);}
+.home-btn{width:100%;padding:.65rem;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:12px;font-family:var(--mono);font-size:12px;cursor:pointer;}
+.home-btn:hover{border-color:var(--border2);color:var(--text);}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px);}
+.modal-bg.show{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--accent);border-radius:14px;padding:1.75rem 1.5rem;text-align:center;max-width:270px;width:90%;animation:pop .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-icon{font-size:42px;margin-bottom:.5rem;}
+.modal-title{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--accent);margin-bottom:3px;}
+.modal-sub{font-size:12px;color:var(--text2);margin-bottom:.875rem;}
+.modal-ok{padding:.6rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:9px;font-family:var(--mono);font-size:13px;font-weight:700;cursor:pointer;}
+.combo-flash{position:fixed;top:64px;right:14px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid #3a2400;padding:4px 10px;border-radius:7px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:98;}
+.combo-flash.show{opacity:1;}
+
+@media(max-width:430px){
+  .mode-row{grid-template-columns:repeat(4,1fr);}
+  .opts{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal-box">
+    <div class="modal-icon">🏆</div>
+    <div class="modal-title" id="modalTitle">레벨 업!</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <button class="modal-ok" onclick="closeModal()">계속하기 →</button>
+  </div>
+</div>
+<div class="combo-flash" id="comboFlash"></div>
+
+<!-- ═══ HOME ═══ -->
+<div class="screen active" id="homeScreen">
+  <div class="topnav">
+    <div class="nav-left">
+      <span class="badge b-streak">🔥 <span id="h-streak">0</span>일</span>
+      <span class="badge b-xp">⚡ <span id="h-xp">0</span> XP</span>
+    </div>
+    <span class="b-lv" id="h-lv">Lv.1 · 초보 마크업러</span>
+  </div>
+  <div class="xp-wrap">
+    <div class="xp-row">
+      <span id="h-lvfull">Lv.1 · 초보 마크업러</span>
+      <span><span id="h-xpcurr">0</span>/<span id="h-xpmax">100</span> XP</span>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="h-xpbar" style="width:0%"></div></div>
+  </div>
+
+  <div class="home-hero">
+    <div class="logo">Tag<span>Master</span></div>
+    <div class="tagline">// HTML · CSS 기초 완전 정복</div>
+  </div>
+
+  <div class="sec-label">학습 범위</div>
+  <div class="chip-wrap" id="chipWrap"></div>
+
+  <div class="sec-label">문제 유형</div>
+  <div class="mode-row">
+    <div class="m-btn sel" data-mode="mixed" onclick="pickMode(this,'mixed')"><div class="mi">🎲</div><div class="mn">혼합</div></div>
+    <div class="m-btn" data-mode="flashcard" onclick="pickMode(this,'flashcard')"><div class="mi">🃏</div><div class="mn">플래시카드</div></div>
+    <div class="m-btn" data-mode="blank" onclick="pickMode(this,'blank')"><div class="mi">⬜</div><div class="mn">빈칸</div></div>
+    <div class="m-btn" data-mode="typein" onclick="pickMode(this,'typein')"><div class="mi">⌨️</div><div class="mn">직접입력</div></div>
+  </div>
+  <button class="start-btn" onclick="startSession()">학습 시작 →</button>
+</div>
+
+<!-- ═══ QUIZ ═══ -->
+<div class="screen" id="quizScreen">
+  <div class="topnav">
+    <div class="nav-left">
+      <span class="badge b-streak">🔥 <span id="q-streak">0</span>일</span>
+      <span class="badge b-xp">⚡ Lv.<span id="q-lv">1</span> · <span id="q-xp">0</span>xp</span>
+    </div>
+  </div>
+
+  <!-- 항상 노출: 학습 범위 + 유형 -->
+  <div class="sess-info">
+    <span>📚</span>
+    <span class="si-topic" id="si-topic">전체</span>
+    <span style="color:var(--border2)">·</span>
+    <span class="si-mode" id="si-mode">혼합 모드</span>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-row">
+      <span>진행률</span>
+      <span><span id="q-curr">1</span>/<span id="q-total">15</span></span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="q-progfill" style="width:0%"></div></div>
+  </div>
+
+  <div class="qcard">
+    <span class="qt-tag qt-flash" id="qtTag">🃏 플래시카드</span>
+    <div class="q-text" id="qText"></div>
+    <div class="code-blk" id="qCode" style="display:none"></div>
+    <div class="opts" id="qOpts"></div>
+    <div class="type-row" id="qTypeRow" style="display:none">
+      <input class="t-inp" id="tInp" placeholder="여기에 입력..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off"/>
+      <button class="ok-btn" onclick="submitType()">확인</button>
+    </div>
+    <div id="qHint" style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:5px;"></div>
+  </div>
+
+  <div class="fb" id="fb"></div>
+  <div class="prev-rev" id="prevRev"><div class="pr-lbl">이전 풀이 기록</div><div id="prevRevBody"></div></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQ()">다음 문제 →</button>
+  <div class="q-actions">
+    <button class="nav-btn" id="prevBtn" onclick="prevQ()" disabled>← 이전</button>
+    <button class="nav-btn" onclick="goHome()">🏠 홈</button>
+  </div>
+</div>
+
+<!-- ═══ RESULT ═══ -->
+<div class="screen" id="resultScreen">
+  <div class="topnav">
+    <div class="nav-left">
+      <span class="badge b-streak">🔥 <span id="r-streak">0</span>일</span>
+      <span class="badge b-xp">⚡ <span id="r-xp">0</span> XP</span>
+    </div>
+  </div>
+  <div class="res-hero">
+    <div class="res-emoji" id="r-emoji">🎉</div>
+    <div class="res-title" id="r-title">세션 완료!</div>
+    <div class="res-sub" id="r-sub"></div>
+  </div>
+  <div class="res-grid">
+    <div class="res-box"><div class="res-val rv-g" id="r-correct">0</div><div class="res-lbl">정답</div></div>
+    <div class="res-box"><div class="res-val rv-a" id="r-gained">+0</div><div class="res-lbl">획득 XP</div></div>
+    <div class="res-box"><div class="res-val rv-o" id="r-combo">0</div><div class="res-lbl">최대 콤보</div></div>
+  </div>
+  <button class="again-btn" onclick="startSession()">같은 설정으로 다시 →</button>
+  <button class="home-btn" onclick="goHome()">홈으로</button>
+</div>
+
+</div><!-- .app -->
+<script>
+/* ════════ LEVELS ════════ */
+const LEVELS=[
+  {name:'초보 마크업러',max:100},
+  {name:'태그 수련생',max:250},
+  {name:'CSS 탐험가',max:500},
+  {name:'엘리먼트 기사',max:850},
+  {name:'레이아웃 마법사',max:1300},
+  {name:'웹 장인',max:2000},
+  {name:'HTML 현자',max:9999},
+];
+const SL=15, SK='tm-v5';
+
+/* ════════ TOPICS ════════ */
+const TOPICS=[
+  {id:'all',    label:'⚡ 전체'},
+  {id:'h-struct',label:'🏗 기본구조',    desc:'html·head·body·title·meta·link'},
+  {id:'h-text',  label:'✍️ 텍스트/제목', desc:'h1~h6·p·span·strong·br·hr·blockquote'},
+  {id:'h-list',  label:'📋 목록·표',     desc:'ul·ol·li·table·tr·td·th·thead·tbody'},
+  {id:'h-media', label:'🖼 멀티미디어',  desc:'img·audio·video·source·track'},
+  {id:'h-form',  label:'📝 폼요소',      desc:'form·input·button·label·select·textarea·fieldset'},
+  {id:'h-sem',   label:'🧩 시맨틱',      desc:'header·nav·main·section·article·aside·footer'},
+  {id:'c-color', label:'🎨 색상·배경',   desc:'color·background-*·opacity'},
+  {id:'c-text',  label:'🔤 텍스트스타일',desc:'font-*·text-*·line-height'},
+  {id:'c-box',   label:'📦 박스모델',    desc:'width·height·margin·padding·border·border-radius'},
+  {id:'c-layout',label:'🔲 레이아웃',    desc:'display·position·float·flex·grid·z-index'},
+  {id:'c-anim',  label:'✨ 애니메이션',  desc:'transition·transform·animation·keyframes'},
+];
+
+/* ════════ QUESTION BANK ════════ */
+/* p:'h' = 높은 중요도 / p:'l' = 낮은 중요도(전체 모드에서 30% 확률) */
+const QB=[
+/* ━━━━ h-struct: html·head·body·title·meta·link ━━━━ */
+// html 태그
+{t:'fc',c:'h-struct',p:'h',q:'HTML 문서 전체를 감싸는 루트 태그는?',a:'<html>',o:['<html>','<body>','<root>','<document>']},
+{t:'fc',c:'h-struct',p:'h',q:'<html> 태그에서 문서 언어를 한국어로 설정하는 속성·값은?',a:'lang="ko"',o:['lang="ko"','lang="kr"','language="ko"','locale="ko"']},
+{t:'fc',c:'h-struct',p:'h',q:'HTML에서 루트 태그 바로 안에 들어오는 두 태그는?',a:'<head>와 <body>',o:['<head>와 <body>','<meta>와 <body>','<head>와 <main>','<title>와 <body>']},
+{t:'bk',c:'h-struct',p:'h',q:'HTML 루트 태그에 한국어 설정을 추가하는 빈칸은?',cd:'<html ___="ko">\n  <head>...</head>\n  <body>...</body>\n</html>',bk:'lang',a:'lang',o:['lang','language','locale','xml:lang']},
+{t:'bk',c:'h-struct',p:'h',q:'HTML5 DOCTYPE 선언 빈칸은?',cd:'<!___ html>',bk:'DOCTYPE',a:'DOCTYPE',o:['DOCTYPE','doctype','HTML5','version']},
+{t:'bk',c:'h-struct',p:'h',q:'head 태그 안 빈칸은?',cd:'<html lang="ko">\n  <___>\n    <title>페이지</title>\n  </___>\n</html>',bk:'head',a:'<head>',o:['<head>','<meta>','<body>','<top>']},
+{t:'ty',c:'h-struct',p:'h',q:'HTML 문서 루트 태그를 입력하세요. (꺾쇠 포함)',a:'<html>',ac:['html','<html>']},
+{t:'ty',c:'h-struct',p:'h',q:'HTML5 DOCTYPE 선언을 입력하세요.',a:'<!DOCTYPE html>',ac:['<!doctype html>','<!DOCTYPE html>','doctype html']},
+{t:'ty',c:'h-struct',p:'h',q:'화면에 보이는 콘텐츠를 담는 태그를 입력하세요. (꺾쇠 포함)',a:'<body>',ac:['body','<body>']},
+// head
+{t:'fc',c:'h-struct',p:'h',q:'브라우저 탭 제목을 설정하는 태그는?',a:'<title>',o:['<title>','<head>','<h1>','<meta>']},
+{t:'fc',c:'h-struct',p:'h',q:'문서 메타정보(charset 등)를 설정하는 빈 태그는?',a:'<meta>',o:['<meta>','<link>','<info>','<data>']},
+{t:'fc',c:'h-struct',p:'h',q:'외부 CSS 파일을 연결하는 태그는?',a:'<link>',o:['<link>','<style>','<import>','<css>']},
+{t:'fc',c:'h-struct',p:'h',q:'<link> 태그에서 CSS 파일임을 나타내는 rel 속성값은?',a:'stylesheet',o:['stylesheet','style','css','text/css']},
+{t:'fc',c:'h-struct',p:'h',q:'문자셋을 UTF-8로 선언하는 meta 태그 속성은?',a:'charset="UTF-8"',o:['charset="UTF-8"','type="UTF-8"','encoding="UTF-8"','lang="UTF-8"']},
+{t:'bk',c:'h-struct',p:'h',q:'외부 CSS를 연결하는 빈칸 태그는?',cd:'<head>\n  <___ rel="stylesheet" href="style.css">\n</head>',bk:'link',a:'<link>',o:['<link>','<style>','<meta>','<import>']},
+{t:'bk',c:'h-struct',p:'h',q:'탭 제목 태그의 빈칸은?',cd:'<head>\n  <___>홈페이지</___>\n</head>',bk:'title',a:'<title>',o:['<title>','<h1>','<meta>','<head>']},
+{t:'bk',c:'h-struct',p:'h',q:'UTF-8 charset 선언 빈칸은?',cd:'<meta ___="UTF-8">',bk:'charset',a:'charset',o:['charset','type','encoding','lang']},
+{t:'ty',c:'h-struct',p:'h',q:'메타정보를 담는 영역 태그를 입력하세요. (꺾쇠 포함)',a:'<head>',ac:['head','<head>']},
+{t:'ty',c:'h-struct',p:'h',q:'탭 제목 설정 태그를 입력하세요. (꺾쇠 포함)',a:'<title>',ac:['title','<title>']},
+{t:'ty',c:'h-struct',p:'h',q:'외부 CSS를 연결하는 태그를 입력하세요. (꺾쇠 포함)',a:'<link>',ac:['link','<link>','<link/>']},
+
+/* ━━━━ h-text: h1~h6·p·span·strong·br·hr·blockquote ━━━━ */
+// h1~h6
+{t:'fc',c:'h-text',p:'h',q:'가장 큰 제목 태그는?',a:'<h1>',o:['<h1>','<h6>','<p>','<title>']},
+{t:'fc',c:'h-text',p:'h',q:'제목 태그 h1~h6 중 가장 작은 것은?',a:'<h6>',o:['<h6>','<h5>','<h4>','<small>']},
+{t:'fc',c:'h-text',p:'h',q:'h1~h6 제목 태그가 나타내는 것은?',a:'콘텐츠의 계층 구조(중요도)',o:['콘텐츠의 계층 구조(중요도)','텍스트 크기','굵기','색상']},
+{t:'bk',c:'h-text',p:'h',q:'가장 큰 제목 태그 빈칸은?',cd:'<___>메인 제목</___>',bk:'h1',a:'<h1>',o:['<h1>','<h2>','<p>','<title>']},
+{t:'bk',c:'h-text',p:'h',q:'두 번째 수준 제목 빈칸은?',cd:'<section>\n  <___>소단원 제목</___>\n</section>',bk:'h2',a:'<h2>',o:['<h2>','<h1>','<h3>','<p>']},
+{t:'bk',c:'h-text',p:'l',q:'세 번째 수준 제목 빈칸은?',cd:'<article>\n  <h2>챕터</h2>\n  <___>소제목</___>\n</article>',bk:'h3',a:'<h3>',o:['<h3>','<h2>','<h4>','<p>']},
+{t:'ty',c:'h-text',p:'h',q:'가장 큰 제목 태그를 입력하세요. (꺾쇠 포함)',a:'<h1>',ac:['h1','<h1>']},
+{t:'ty',c:'h-text',p:'h',q:'두 번째 제목 태그를 입력하세요. (꺾쇠 포함)',a:'<h2>',ac:['h2','<h2>']},
+{t:'ty',c:'h-text',p:'l',q:'세 번째 제목 태그를 입력하세요. (꺾쇠 포함)',a:'<h3>',ac:['h3','<h3>']},
+// p·span
+{t:'fc',c:'h-text',p:'h',q:'단락(문단)을 나타내는 태그는?',a:'<p>',o:['<p>','<span>','<text>','<div>']},
+{t:'fc',c:'h-text',p:'h',q:'인라인 텍스트를 그룹핑(블록 아님)하는 태그는?',a:'<span>',o:['<span>','<div>','<p>','<em>']},
+{t:'fc',c:'h-text',p:'h',q:'<p>와 <span>의 차이점은?',a:'p는 블록 요소, span은 인라인 요소',o:['p는 블록 요소, span은 인라인 요소','p는 인라인, span은 블록','둘 다 블록','둘 다 인라인']},
+{t:'bk',c:'h-text',p:'h',q:'단락 태그 빈칸은?',cd:'<article>\n  <h2>제목</h2>\n  <___>본문 내용입니다.</___>\n</article>',bk:'p',a:'<p>',o:['<p>','<span>','<div>','<text>']},
+{t:'bk',c:'h-text',p:'h',q:'인라인 텍스트 그룹 태그 빈칸은?',cd:'<p>가격: <___>₩10,000</___></p>',bk:'span',a:'<span>',o:['<span>','<p>','<b>','<em>']},
+{t:'ty',c:'h-text',p:'h',q:'단락 태그를 입력하세요. (꺾쇠 포함)',a:'<p>',ac:['p','<p>']},
+{t:'ty',c:'h-text',p:'h',q:'인라인 텍스트 그룹 태그를 입력하세요. (꺾쇠 포함)',a:'<span>',ac:['span','<span>']},
+// strong·br·hr
+{t:'fc',c:'h-text',p:'h',q:'텍스트를 굵게 + 의미 강조하는 태그는?',a:'<strong>',o:['<strong>','<b>','<em>','<mark>']},
+{t:'fc',c:'h-text',p:'h',q:'줄바꿈을 삽입하는 빈(self-closing) 태그는?',a:'<br>',o:['<br>','<hr>','<nl>','<wrap>']},
+{t:'fc',c:'h-text',p:'h',q:'수평 구분선을 그리는 태그는?',a:'<hr>',o:['<hr>','<br>','<line>','<divider>']},
+{t:'fc',c:'h-text',p:'l',q:'긴 인용문을 나타내는 블록 태그는?',a:'<blockquote>',o:['<blockquote>','<q>','<cite>','<quote>']},
+{t:'bk',c:'h-text',p:'h',q:'굵은 강조 태그 빈칸은?',cd:'<p>이것은 <___>매우 중요</___>합니다.</p>',bk:'strong',a:'<strong>',o:['<strong>','<b>','<em>','<mark>']},
+{t:'bk',c:'h-text',p:'h',q:'줄바꿈 태그 빈칸은?',cd:'<p>첫 번째 줄<___>두 번째 줄</p>',bk:'br',a:'<br>',o:['<br>','<hr>','<p>','<nl>']},
+{t:'bk',c:'h-text',p:'h',q:'수평선 태그 빈칸은?',cd:'<section>\n  <h2>섹션1</h2>\n  <___>\n  <h2>섹션2</h2>\n</section>',bk:'hr',a:'<hr>',o:['<hr>','<br>','<line>','<p>']},
+{t:'bk',c:'h-text',p:'l',q:'인용 블록 태그 빈칸은?',cd:'<___>\n  <p>"명언이 여기 들어갑니다."</p>\n</___>',bk:'blockquote',a:'<blockquote>',o:['<blockquote>','<q>','<cite>','<div>']},
+{t:'ty',c:'h-text',p:'h',q:'의미 있는 굵은 강조 태그를 입력하세요. (꺾쇠 포함)',a:'<strong>',ac:['strong','<strong>']},
+{t:'ty',c:'h-text',p:'h',q:'줄바꿈 빈 태그를 입력하세요. (꺾쇠 포함)',a:'<br>',ac:['br','<br>','<br/>']},
+{t:'ty',c:'h-text',p:'h',q:'수평선 태그를 입력하세요. (꺾쇠 포함)',a:'<hr>',ac:['hr','<hr>','<hr/>']},
+{t:'ty',c:'h-text',p:'l',q:'긴 인용문 블록 태그를 입력하세요. (꺾쇠 포함)',a:'<blockquote>',ac:['blockquote','<blockquote>']},
+
+/* ━━━━ h-list: ul·ol·li·table·tr·td·th·thead·tbody ━━━━ */
+// 목록
+{t:'fc',c:'h-list',p:'h',q:'순서 없는(점 목록) 목록 태그는?',a:'<ul>',o:['<ul>','<ol>','<dl>','<list>']},
+{t:'fc',c:'h-list',p:'h',q:'순서 있는(숫자) 목록 태그는?',a:'<ol>',o:['<ol>','<ul>','<dl>','<numbered>']},
+{t:'fc',c:'h-list',p:'h',q:'ul·ol 안의 각 항목 태그는?',a:'<li>',o:['<li>','<item>','<dt>','<dd>']},
+{t:'fc',c:'h-list',p:'h',q:'<ul>과 <ol>의 차이는?',a:'ul은 순서 없음, ol은 순서 있음',o:['ul은 순서 없음, ol은 순서 있음','ul이 숫자, ol이 점 목록','둘 다 같음','ul이 ol 안에 들어감']},
+{t:'bk',c:'h-list',p:'h',q:'순서 없는 목록 태그 빈칸은?',cd:'<___>\n  <li>사과</li>\n  <li>바나나</li>\n</___>',bk:'ul',a:'<ul>',o:['<ul>','<ol>','<dl>','<list>']},
+{t:'bk',c:'h-list',p:'h',q:'순서 있는 목록 태그 빈칸은?',cd:'<___>\n  <li>1단계 준비</li>\n  <li>2단계 실행</li>\n</___>',bk:'ol',a:'<ol>',o:['<ol>','<ul>','<dl>','<numbered>']},
+{t:'bk',c:'h-list',p:'h',q:'목록 항목 태그 빈칸은?',cd:'<ul>\n  <___>첫 번째</___>\n  <___>두 번째</___>\n</ul>',bk:'li',a:'<li>',o:['<li>','<item>','<dt>','<p>']},
+{t:'ty',c:'h-list',p:'h',q:'순서 없는 목록 태그를 입력하세요. (꺾쇠 포함)',a:'<ul>',ac:['ul','<ul>']},
+{t:'ty',c:'h-list',p:'h',q:'순서 있는 목록 태그를 입력하세요. (꺾쇠 포함)',a:'<ol>',ac:['ol','<ol>']},
+{t:'ty',c:'h-list',p:'h',q:'목록 항목 태그를 입력하세요. (꺾쇠 포함)',a:'<li>',ac:['li','<li>']},
+// 표
+{t:'fc',c:'h-list',p:'h',q:'표 전체를 감싸는 태그는?',a:'<table>',o:['<table>','<grid>','<chart>','<data>']},
+{t:'fc',c:'h-list',p:'h',q:'표의 행(가로줄)을 만드는 태그는?',a:'<tr>',o:['<tr>','<td>','<th>','<row>']},
+{t:'fc',c:'h-list',p:'h',q:'표의 일반 데이터 셀 태그는?',a:'<td>',o:['<td>','<th>','<tr>','<cell>']},
+{t:'fc',c:'h-list',p:'h',q:'표의 헤더 셀(굵고 가운데) 태그는?',a:'<th>',o:['<th>','<td>','<thead>','<head>']},
+{t:'fc',c:'h-list',p:'h',q:'표의 헤더 행 영역을 묶는 태그는?',a:'<thead>',o:['<thead>','<th>','<tbody>','<header>']},
+{t:'fc',c:'h-list',p:'h',q:'표의 본문 행 영역을 묶는 태그는?',a:'<tbody>',o:['<tbody>','<td>','<thead>','<body>']},
+{t:'bk',c:'h-list',p:'h',q:'표 행 태그 빈칸은?',cd:'<table>\n  <___>\n    <td>이름</td><td>점수</td>\n  </___>\n</table>',bk:'tr',a:'<tr>',o:['<tr>','<td>','<th>','<row>']},
+{t:'bk',c:'h-list',p:'h',q:'헤더 셀 태그 빈칸은?',cd:'<tr>\n  <___>이름</___>\n  <___>점수</___>\n</tr>',bk:'th',a:'<th>',o:['<th>','<td>','<thead>','<label>']},
+{t:'bk',c:'h-list',p:'h',q:'데이터 셀 태그 빈칸은?',cd:'<tr>\n  <___>홍길동</___>\n  <___>100점</___>\n</tr>',bk:'td',a:'<td>',o:['<td>','<th>','<tr>','<cell>']},
+{t:'bk',c:'h-list',p:'h',q:'표 본문 영역 태그 빈칸은?',cd:'<table>\n  <thead>...</thead>\n  <___>...</___>\n</table>',bk:'tbody',a:'<tbody>',o:['<tbody>','<body>','<td>','<tr>']},
+{t:'ty',c:'h-list',p:'h',q:'표를 감싸는 태그를 입력하세요. (꺾쇠 포함)',a:'<table>',ac:['table','<table>']},
+{t:'ty',c:'h-list',p:'h',q:'표의 행 태그를 입력하세요. (꺾쇠 포함)',a:'<tr>',ac:['tr','<tr>']},
+{t:'ty',c:'h-list',p:'h',q:'표의 데이터 셀 태그를 입력하세요. (꺾쇠 포함)',a:'<td>',ac:['td','<td>']},
+{t:'ty',c:'h-list',p:'h',q:'표의 헤더 셀 태그를 입력하세요. (꺾쇠 포함)',a:'<th>',ac:['th','<th>']},
+{t:'ty',c:'h-list',p:'h',q:'표 본문 영역 태그를 입력하세요. (꺾쇠 포함)',a:'<tbody>',ac:['tbody','<tbody>']},
+
+/* ━━━━ h-media: img·audio·video·source·track ━━━━ */
+{t:'fc',c:'h-media',p:'h',q:'이미지를 삽입하는 self-closing 태그는?',a:'<img>',o:['<img>','<image>','<picture>','<src>']},
+{t:'fc',c:'h-media',p:'h',q:'<img>에서 이미지 경로를 지정하는 속성은?',a:'src',o:['src','href','path','link']},
+{t:'fc',c:'h-media',p:'h',q:'<img>에서 대체 텍스트(스크린리더/로드 실패 시)를 지정하는 속성은?',a:'alt',o:['alt','title','desc','label']},
+{t:'fc',c:'h-media',p:'h',q:'동영상을 삽입하는 태그는?',a:'<video>',o:['<video>','<movie>','<media>','<embed>']},
+{t:'fc',c:'h-media',p:'h',q:'오디오를 삽입하는 태그는?',a:'<audio>',o:['<audio>','<sound>','<music>','<media>']},
+{t:'fc',c:'h-media',p:'h',q:'video/audio 안에서 미디어 파일 경로를 지정하는 태그는?',a:'<source>',o:['<source>','<src>','<media>','<file>']},
+{t:'fc',c:'h-media',p:'l',q:'video 자막 파일을 지정하는 태그는?',a:'<track>',o:['<track>','<subtitle>','<caption>','<source>']},
+{t:'fc',c:'h-media',p:'h',q:'video·audio에서 재생 컨트롤을 표시하는 속성은?',a:'controls',o:['controls','play','ui','toolbar']},
+{t:'bk',c:'h-media',p:'h',q:'이미지 경로 속성 빈칸은?',cd:'<img ___="photo.jpg" alt="풍경">',bk:'src',a:'src',o:['src','href','link','path']},
+{t:'bk',c:'h-media',p:'h',q:'대체 텍스트 속성 빈칸은?',cd:'<img src="dog.jpg" ___="강아지 사진">',bk:'alt',a:'alt',o:['alt','title','desc','name']},
+{t:'bk',c:'h-media',p:'h',q:'비디오 태그 빈칸은?',cd:'<___ src="movie.mp4" controls>\n</___ >',bk:'video',a:'<video>',o:['<video>','<audio>','<media>','<embed>']},
+{t:'bk',c:'h-media',p:'h',q:'오디오 컨트롤 속성 빈칸은?',cd:'<audio src="bgm.mp3" ___></audio>',bk:'controls',a:'controls',o:['controls','play','ui','autoplay']},
+{t:'bk',c:'h-media',p:'h',q:'video 내부 source 태그 빈칸은?',cd:'<video controls>\n  <___ src="clip.mp4" type="video/mp4">\n</video>',bk:'source',a:'<source>',o:['<source>','<src>','<file>','<track>']},
+{t:'ty',c:'h-media',p:'h',q:'이미지 삽입 태그를 입력하세요. (꺾쇠 포함)',a:'<img>',ac:['img','<img>','<img/>']},
+{t:'ty',c:'h-media',p:'h',q:'이미지 경로 속성명을 입력하세요.',a:'src',ac:['src']},
+{t:'ty',c:'h-media',p:'h',q:'이미지 대체 텍스트 속성명을 입력하세요.',a:'alt',ac:['alt']},
+{t:'ty',c:'h-media',p:'h',q:'동영상 삽입 태그를 입력하세요. (꺾쇠 포함)',a:'<video>',ac:['video','<video>']},
+{t:'ty',c:'h-media',p:'h',q:'오디오 삽입 태그를 입력하세요. (꺾쇠 포함)',a:'<audio>',ac:['audio','<audio>']},
+{t:'ty',c:'h-media',p:'l',q:'미디어 내부 소스 지정 태그를 입력하세요. (꺾쇠 포함)',a:'<source>',ac:['source','<source>','<source/>']},
+
+/* ━━━━ h-form: form·input·button·label·select·textarea·fieldset ━━━━ */
+{t:'fc',c:'h-form',p:'h',q:'입력 양식을 감싸는 태그는?',a:'<form>',o:['<form>','<input>','<fieldset>','<submit>']},
+{t:'fc',c:'h-form',p:'h',q:'다양한 입력 필드를 만드는 빈 태그는?',a:'<input>',o:['<input>','<field>','<text>','<form>']},
+{t:'fc',c:'h-form',p:'h',q:'<input> 유형을 지정하는 속성은?',a:'type',o:['type','kind','input','mode']},
+{t:'fc',c:'h-form',p:'h',q:'텍스트 한 줄 입력의 type 값은?',a:'text',o:['text','input','string','line']},
+{t:'fc',c:'h-form',p:'h',q:'비밀번호 입력(가려짐)의 type 값은?',a:'password',o:['password','pw','secret','hidden']},
+{t:'fc',c:'h-form',p:'h',q:'체크박스의 type 값은?',a:'checkbox',o:['checkbox','check','bool','tick']},
+{t:'fc',c:'h-form',p:'h',q:'라디오 버튼의 type 값은?',a:'radio',o:['radio','circle','select','option']},
+{t:'fc',c:'h-form',p:'h',q:'파일 업로드 input의 type 값은?',a:'file',o:['file','upload','attach','document']},
+{t:'fc',c:'h-form',p:'h',q:'폼 제출 버튼 input의 type 값은?',a:'submit',o:['submit','send','post','button']},
+{t:'fc',c:'h-form',p:'h',q:'클릭 가능한 버튼 태그는?',a:'<button>',o:['<button>','<input>','<submit>','<click>']},
+{t:'fc',c:'h-form',p:'h',q:'여러 줄 텍스트 입력 태그는?',a:'<textarea>',o:['<textarea>','<input>','<multiline>','<text>']},
+{t:'fc',c:'h-form',p:'h',q:'드롭다운 목록 태그는?',a:'<select>',o:['<select>','<option>','<dropdown>','<choose>']},
+{t:'fc',c:'h-form',p:'h',q:'<select> 안 각 선택지 태그는?',a:'<option>',o:['<option>','<item>','<select>','<li>']},
+{t:'fc',c:'h-form',p:'h',q:'input에 설명 텍스트를 연결하는 태그는?',a:'<label>',o:['<label>','<span>','<legend>','<caption>']},
+{t:'fc',c:'h-form',p:'h',q:'<label>에서 연결할 input id를 지정하는 속성은?',a:'for',o:['for','id','name','to']},
+{t:'fc',c:'h-form',p:'l',q:'폼 요소를 그룹으로 묶는 태그는?',a:'<fieldset>',o:['<fieldset>','<group>','<form>','<section>']},
+{t:'bk',c:'h-form',p:'h',q:'텍스트 input type 빈칸은?',cd:'<input ___="text" placeholder="이름">',bk:'type',a:'type',o:['type','kind','input','name']},
+{t:'bk',c:'h-form',p:'h',q:'비밀번호 type 빈칸은?',cd:'<input type="___" name="pw">',bk:'password',a:'password',o:['password','text','hidden','pw']},
+{t:'bk',c:'h-form',p:'h',q:'label for 속성 빈칸은?',cd:'<label ___="email">이메일</label>\n<input id="email" type="email">',bk:'for',a:'for',o:['for','id','name','class']},
+{t:'bk',c:'h-form',p:'h',q:'드롭다운 태그 빈칸은?',cd:'<___>\n  <option>서울</option>\n  <option>부산</option>\n</___>',bk:'select',a:'<select>',o:['<select>','<ul>','<input>','<dropdown>']},
+{t:'bk',c:'h-form',p:'h',q:'제출 type 빈칸은?',cd:'<input type="___" value="전송">',bk:'submit',a:'submit',o:['submit','send','button','post']},
+{t:'bk',c:'h-form',p:'h',q:'여러 줄 입력창 태그 빈칸은?',cd:'<___  name="message" rows="5">\n</___>',bk:'textarea',a:'<textarea>',o:['<textarea>','<input>','<text>','<multiline>']},
+{t:'ty',c:'h-form',p:'h',q:'입력 양식 태그를 입력하세요. (꺾쇠 포함)',a:'<form>',ac:['form','<form>']},
+{t:'ty',c:'h-form',p:'h',q:'입력 필드 빈 태그를 입력하세요. (꺾쇠 포함)',a:'<input>',ac:['input','<input>','<input/>']},
+{t:'ty',c:'h-form',p:'h',q:'드롭다운 태그를 입력하세요. (꺾쇠 포함)',a:'<select>',ac:['select','<select>']},
+{t:'ty',c:'h-form',p:'h',q:'여러 줄 입력창 태그를 입력하세요. (꺾쇠 포함)',a:'<textarea>',ac:['textarea','<textarea>']},
+{t:'ty',c:'h-form',p:'h',q:'label에서 input을 연결하는 속성명을 입력하세요.',a:'for',ac:['for']},
+{t:'ty',c:'h-form',p:'h',q:'input 유형을 지정하는 속성명을 입력하세요.',a:'type',ac:['type']},
+
+/* ━━━━ h-sem: header·nav·main·section·article·aside·footer ━━━━ */
+{t:'fc',c:'h-sem',p:'h',q:'페이지 상단 헤더 영역 시맨틱 태그는?',a:'<header>',o:['<header>','<head>','<top>','<nav>']},
+{t:'fc',c:'h-sem',p:'h',q:'내비게이션 링크 묶음 시맨틱 태그는?',a:'<nav>',o:['<nav>','<menu>','<ul>','<link>']},
+{t:'fc',c:'h-sem',p:'h',q:'페이지 주요 콘텐츠 영역 시맨틱 태그는?',a:'<main>',o:['<main>','<body>','<content>','<section>']},
+{t:'fc',c:'h-sem',p:'h',q:'독립된 콘텐츠 구역 시맨틱 태그는?',a:'<section>',o:['<section>','<div>','<article>','<aside>']},
+{t:'fc',c:'h-sem',p:'h',q:'블로그 포스트·뉴스 기사처럼 독립 배포 가능한 콘텐츠 태그는?',a:'<article>',o:['<article>','<section>','<post>','<content>']},
+{t:'fc',c:'h-sem',p:'h',q:'사이드바·부가 정보 영역 시맨틱 태그는?',a:'<aside>',o:['<aside>','<sidebar>','<section>','<extra>']},
+{t:'fc',c:'h-sem',p:'h',q:'페이지 하단 푸터 시맨틱 태그는?',a:'<footer>',o:['<footer>','<bottom>','<end>','<header>']},
+{t:'fc',c:'h-sem',p:'h',q:'시맨틱 태그를 쓰는 이유는?',a:'검색엔진·스크린리더가 구조를 이해하기 쉬움',o:['검색엔진·스크린리더가 구조를 이해하기 쉬움','색상을 자동 적용하기 위해','JS를 줄이기 위해','CSS를 안 써도 되어서']},
+{t:'bk',c:'h-sem',p:'h',q:'헤더 영역 태그 빈칸은?',cd:'<___>\n  <nav>메뉴</nav>\n</___>',bk:'header',a:'<header>',o:['<header>','<head>','<top>','<nav>']},
+{t:'bk',c:'h-sem',p:'h',q:'내비게이션 태그 빈칸은?',cd:'<___>\n  <a href="/">홈</a>\n  <a href="/about">소개</a>\n</___>',bk:'nav',a:'<nav>',o:['<nav>','<ul>','<header>','<menu>']},
+{t:'bk',c:'h-sem',p:'h',q:'주요 콘텐츠 태그 빈칸은?',cd:'<body>\n  <header>...</header>\n  <___>메인 내용</___>\n  <footer>...</footer>\n</body>',bk:'main',a:'<main>',o:['<main>','<content>','<body>','<section>']},
+{t:'bk',c:'h-sem',p:'h',q:'푸터 태그 빈칸은?',cd:'<___>\n  <p>Copyright 2025</p>\n</___>',bk:'footer',a:'<footer>',o:['<footer>','<bottom>','<header>','<end>']},
+{t:'bk',c:'h-sem',p:'h',q:'독립 기사 콘텐츠 태그 빈칸은?',cd:'<section>\n  <___>\n    <h2>기사 제목</h2>\n    <p>내용...</p>\n  </___>\n</section>',bk:'article',a:'<article>',o:['<article>','<section>','<div>','<post>']},
+{t:'bk',c:'h-sem',p:'l',q:'사이드바 태그 빈칸은?',cd:'<main>\n  <article>본문</article>\n  <___>광고·관련링크</___>\n</main>',bk:'aside',a:'<aside>',o:['<aside>','<sidebar>','<section>','<div>']},
+{t:'ty',c:'h-sem',p:'h',q:'페이지 헤더 시맨틱 태그를 입력하세요. (꺾쇠 포함)',a:'<header>',ac:['header','<header>']},
+{t:'ty',c:'h-sem',p:'h',q:'내비게이션 시맨틱 태그를 입력하세요. (꺾쇠 포함)',a:'<nav>',ac:['nav','<nav>']},
+{t:'ty',c:'h-sem',p:'h',q:'주요 콘텐츠 시맨틱 태그를 입력하세요. (꺾쇠 포함)',a:'<main>',ac:['main','<main>']},
+{t:'ty',c:'h-sem',p:'h',q:'페이지 푸터 시맨틱 태그를 입력하세요. (꺾쇠 포함)',a:'<footer>',ac:['footer','<footer>']},
+{t:'ty',c:'h-sem',p:'h',q:'독립 기사 콘텐츠 시맨틱 태그를 입력하세요. (꺾쇠 포함)',a:'<article>',ac:['article','<article>']},
+{t:'ty',c:'h-sem',p:'h',q:'독립 섹션 시맨틱 태그를 입력하세요. (꺾쇠 포함)',a:'<section>',ac:['section','<section>']},
+{t:'ty',c:'h-sem',p:'h',q:'사이드바 시맨틱 태그를 입력하세요. (꺾쇠 포함)',a:'<aside>',ac:['aside','<aside>']},
+
+/* ━━━━ c-color: color·background-color·background-image·background-size·opacity ━━━━ */
+{t:'fc',c:'c-color',p:'h',q:'텍스트 색상 CSS 속성은?',a:'color',o:['color','font-color','text-color','foreground']},
+{t:'fc',c:'c-color',p:'h',q:'배경 색상 CSS 속성은?',a:'background-color',o:['background-color','bg-color','color','fill']},
+{t:'fc',c:'c-color',p:'h',q:'배경 이미지를 지정하는 CSS 속성은?',a:'background-image',o:['background-image','bg-image','image','background']},
+{t:'fc',c:'c-color',p:'h',q:'background-image의 크기를 지정하는 CSS 속성은?',a:'background-size',o:['background-size','bg-size','image-size','cover']},
+{t:'fc',c:'c-color',p:'h',q:'요소 투명도를 0~1 범위로 지정하는 CSS 속성은?',a:'opacity',o:['opacity','transparency','alpha','visibility']},
+{t:'fc',c:'c-color',p:'h',q:'background-size에서 이미지를 영역에 꽉 채우는 값은?',a:'cover',o:['cover','contain','fill','stretch']},
+{t:'fc',c:'c-color',p:'l',q:'background-image를 지정할 때 url() 구문을 쓰는 이유는?',a:'이미지 경로를 함수 인자로 전달하기 위해',o:['이미지 경로를 함수 인자로 전달하기 위해','CSS에서는 따옴표가 필요없어서','브라우저 캐시 때문에','보안 때문에']},
+{t:'bk',c:'c-color',p:'h',q:'텍스트 색 속성 빈칸은?',cd:'p {\n  ___: #333333;\n}',bk:'color',a:'color',o:['color','font-color','background','fill']},
+{t:'bk',c:'c-color',p:'h',q:'배경색 속성 빈칸은?',cd:'body {\n  ___: #f0f4f8;\n}',bk:'background-color',a:'background-color',o:['background-color','color','background','bg']},
+{t:'bk',c:'c-color',p:'h',q:'투명도 속성 빈칸은?',cd:'.overlay {\n  ___: 0.5;\n}',bk:'opacity',a:'opacity',o:['opacity','alpha','visibility','transparency']},
+{t:'bk',c:'c-color',p:'h',q:'배경 이미지 속성 빈칸은?',cd:'.hero {\n  ___: url("bg.jpg");\n}',bk:'background-image',a:'background-image',o:['background-image','background','image','bg-image']},
+{t:'bk',c:'c-color',p:'h',q:'배경 이미지 cover 설정 빈칸은?',cd:'.hero {\n  background-image: url("bg.jpg");\n  ___: cover;\n}',bk:'background-size',a:'background-size',o:['background-size','background','image-size','size']},
+{t:'ty',c:'c-color',p:'h',q:'텍스트 색상 CSS 속성명을 입력하세요.',a:'color',ac:['color']},
+{t:'ty',c:'c-color',p:'h',q:'배경 색상 CSS 속성명을 입력하세요.',a:'background-color',ac:['background-color']},
+{t:'ty',c:'c-color',p:'h',q:'배경 이미지 CSS 속성명을 입력하세요.',a:'background-image',ac:['background-image']},
+{t:'ty',c:'c-color',p:'h',q:'배경 이미지 크기 CSS 속성명을 입력하세요.',a:'background-size',ac:['background-size']},
+{t:'ty',c:'c-color',p:'h',q:'투명도 CSS 속성명을 입력하세요.',a:'opacity',ac:['opacity']},
+
+/* ━━━━ c-text: font-size·font-family·font-weight·text-align·line-height·text-decoration ━━━━ */
+{t:'fc',c:'c-text',p:'h',q:'글자 크기 CSS 속성은?',a:'font-size',o:['font-size','text-size','size','letter-size']},
+{t:'fc',c:'c-text',p:'h',q:'글꼴 종류 CSS 속성은?',a:'font-family',o:['font-family','typeface','font-name','font-type']},
+{t:'fc',c:'c-text',p:'h',q:'글자 굵기 CSS 속성은?',a:'font-weight',o:['font-weight','font-bold','text-weight','bold']},
+{t:'fc',c:'c-text',p:'h',q:'텍스트 가로 정렬 CSS 속성은?',a:'text-align',o:['text-align','align','justify','text-position']},
+{t:'fc',c:'c-text',p:'h',q:'줄 간격(행 높이) CSS 속성은?',a:'line-height',o:['line-height','line-spacing','row-height','leading']},
+{t:'fc',c:'c-text',p:'h',q:'밑줄·취소선 등 텍스트 장식 CSS 속성은?',a:'text-decoration',o:['text-decoration','underline','text-style','decoration']},
+{t:'fc',c:'c-text',p:'h',q:'링크 밑줄을 없애는 text-decoration 값은?',a:'none',o:['none','off','hidden','remove']},
+{t:'fc',c:'c-text',p:'h',q:'font-weight에서 굵게를 지정하는 숫자 또는 키워드는?',a:'bold 또는 700',o:['bold 또는 700','thick','100','strong']},
+{t:'bk',c:'c-text',p:'h',q:'글자 크기 속성 빈칸은?',cd:'h1 {\n  ___: 32px;\n}',bk:'font-size',a:'font-size',o:['font-size','text-size','size','font']},
+{t:'bk',c:'c-text',p:'h',q:'글꼴 지정 속성 빈칸은?',cd:'body {\n  ___: "Noto Sans KR", sans-serif;\n}',bk:'font-family',a:'font-family',o:['font-family','typeface','font','font-name']},
+{t:'bk',c:'c-text',p:'h',q:'텍스트 가운데 정렬 속성 빈칸은?',cd:'.title {\n  ___: center;\n}',bk:'text-align',a:'text-align',o:['text-align','align','justify','position']},
+{t:'bk',c:'c-text',p:'h',q:'줄 간격 속성 빈칸은?',cd:'p {\n  ___: 1.8;\n}',bk:'line-height',a:'line-height',o:['line-height','line-spacing','height','leading']},
+{t:'bk',c:'c-text',p:'h',q:'밑줄 제거 빈칸은?',cd:'a {\n  ___: none;\n}',bk:'text-decoration',a:'text-decoration',o:['text-decoration','underline','decoration','border']},
+{t:'bk',c:'c-text',p:'h',q:'글자 굵기 700 설정 빈칸은?',cd:'strong {\n  ___: 700;\n}',bk:'font-weight',a:'font-weight',o:['font-weight','font-bold','weight','bold']},
+{t:'ty',c:'c-text',p:'h',q:'글자 크기 CSS 속성명을 입력하세요.',a:'font-size',ac:['font-size']},
+{t:'ty',c:'c-text',p:'h',q:'글꼴 지정 CSS 속성명을 입력하세요.',a:'font-family',ac:['font-family']},
+{t:'ty',c:'c-text',p:'h',q:'글자 굵기 CSS 속성명을 입력하세요.',a:'font-weight',ac:['font-weight']},
+{t:'ty',c:'c-text',p:'h',q:'텍스트 정렬 CSS 속성명을 입력하세요.',a:'text-align',ac:['text-align']},
+{t:'ty',c:'c-text',p:'h',q:'줄 간격 CSS 속성명을 입력하세요.',a:'line-height',ac:['line-height']},
+{t:'ty',c:'c-text',p:'h',q:'텍스트 장식(밑줄 등) CSS 속성명을 입력하세요.',a:'text-decoration',ac:['text-decoration']},
+
+/* ━━━━ c-box: width·height·margin·padding·border·box-sizing·border-radius ━━━━ */
+{t:'fc',c:'c-box',p:'h',q:'요소 너비 CSS 속성은?',a:'width',o:['width','w','size','length']},
+{t:'fc',c:'c-box',p:'h',q:'요소 높이 CSS 속성은?',a:'height',o:['height','h','size','length']},
+{t:'fc',c:'c-box',p:'h',q:'바깥쪽 여백(외부) CSS 속성은?',a:'margin',o:['margin','padding','gap','outer']},
+{t:'fc',c:'c-box',p:'h',q:'안쪽 여백(내부) CSS 속성은?',a:'padding',o:['padding','margin','spacing','inner']},
+{t:'fc',c:'c-box',p:'h',q:'테두리 CSS 속성은?',a:'border',o:['border','outline','frame','stroke']},
+{t:'fc',c:'c-box',p:'h',q:'테두리 둥글기 CSS 속성은?',a:'border-radius',o:['border-radius','round','corner-radius','border-round']},
+{t:'fc',c:'c-box',p:'h',q:'요소 크기 계산 방식을 지정하는 CSS 속성은?',a:'box-sizing',o:['box-sizing','sizing','box-model','size-mode']},
+{t:'fc',c:'c-box',p:'h',q:'padding·border를 width 안에 포함시키는 box-sizing 값은?',a:'border-box',o:['border-box','content-box','padding-box','margin-box']},
+{t:'fc',c:'c-box',p:'h',q:'border 속성에서 선 종류(solid·dashed·dotted)를 지정하는 위치는?',a:'두 번째 값 (1px ___ red)',o:['두 번째 값 (1px ___ red)','첫 번째 값','세 번째 값','별도 속성으로 지정']},
+{t:'bk',c:'c-box',p:'h',q:'안쪽 여백 속성 빈칸은?',cd:'.card {\n  ___: 20px;\n}',bk:'padding',a:'padding',o:['padding','margin','border','gap']},
+{t:'bk',c:'c-box',p:'h',q:'바깥 여백 속성 빈칸은?',cd:'.section {\n  ___: 0 auto;\n  max-width: 1200px;\n}',bk:'margin',a:'margin',o:['margin','padding','gap','spacing']},
+{t:'bk',c:'c-box',p:'h',q:'1px 실선 테두리 속성 빈칸은?',cd:'.box {\n  ___: 1px solid #ccc;\n}',bk:'border',a:'border',o:['border','outline','frame','stroke']},
+{t:'bk',c:'c-box',p:'h',q:'둥근 모서리 속성 빈칸은?',cd:'.btn {\n  ___: 8px;\n  padding: 10px 20px;\n}',bk:'border-radius',a:'border-radius',o:['border-radius','border','round','radius']},
+{t:'bk',c:'c-box',p:'h',q:'border-box 크기 계산 빈칸은?',cd:'* {\n  ___: border-box;\n}',bk:'box-sizing',a:'box-sizing',o:['box-sizing','sizing','box-model','size']},
+{t:'bk',c:'c-box',p:'h',q:'요소 너비 속성 빈칸은?',cd:'.container {\n  ___: 100%;\n  max-width: 1200px;\n}',bk:'width',a:'width',o:['width','size','w','length']},
+{t:'ty',c:'c-box',p:'h',q:'안쪽 여백 CSS 속성명을 입력하세요.',a:'padding',ac:['padding']},
+{t:'ty',c:'c-box',p:'h',q:'바깥 여백 CSS 속성명을 입력하세요.',a:'margin',ac:['margin']},
+{t:'ty',c:'c-box',p:'h',q:'테두리 CSS 속성명을 입력하세요.',a:'border',ac:['border']},
+{t:'ty',c:'c-box',p:'h',q:'테두리 둥글기 CSS 속성명을 입력하세요.',a:'border-radius',ac:['border-radius']},
+{t:'ty',c:'c-box',p:'h',q:'크기 계산 방식 CSS 속성명을 입력하세요.',a:'box-sizing',ac:['box-sizing']},
+{t:'ty',c:'c-box',p:'h',q:'요소 너비 CSS 속성명을 입력하세요.',a:'width',ac:['width']},
+{t:'ty',c:'c-box',p:'h',q:'요소 높이 CSS 속성명을 입력하세요.',a:'height',ac:['height']},
+
+/* ━━━━ c-layout: display·position·float·flex·grid·z-index ━━━━ */
+{t:'fc',c:'c-layout',p:'h',q:'요소 표시 방식(block·inline·flex·grid 등) CSS 속성은?',a:'display',o:['display','layout','show','visibility']},
+{t:'fc',c:'c-layout',p:'h',q:'Flexbox를 활성화하는 display 값은?',a:'flex',o:['flex','block','grid','inline']},
+{t:'fc',c:'c-layout',p:'h',q:'Grid 레이아웃을 활성화하는 display 값은?',a:'grid',o:['grid','flex','block','table']},
+{t:'fc',c:'c-layout',p:'h',q:'요소를 화면에서 완전히 제거하는 display 값은?',a:'none',o:['none','hidden','invisible','collapse']},
+{t:'fc',c:'c-layout',p:'h',q:'요소 위치 방식 CSS 속성은?',a:'position',o:['position','location','place','layout']},
+{t:'fc',c:'c-layout',p:'h',q:'position에서 부모 기준으로 이동하는 값은?',a:'absolute',o:['absolute','relative','fixed','static']},
+{t:'fc',c:'c-layout',p:'h',q:'position에서 자기 원래 위치 기준으로 이동하는 값은?',a:'relative',o:['relative','absolute','fixed','static']},
+{t:'fc',c:'c-layout',p:'h',q:'스크롤해도 고정되는 position 값은?',a:'fixed',o:['fixed','sticky','absolute','static']},
+{t:'fc',c:'c-layout',p:'h',q:'Flexbox에서 주축 정렬 CSS 속성은?',a:'justify-content',o:['justify-content','align-content','text-align','flex-align']},
+{t:'fc',c:'c-layout',p:'h',q:'Flexbox에서 교차축 정렬 CSS 속성은?',a:'align-items',o:['align-items','justify-items','cross-align','align']},
+{t:'fc',c:'c-layout',p:'h',q:'요소를 왼쪽/오른쪽으로 띄우는 CSS 속성은?',a:'float',o:['float','align','position','display']},
+{t:'fc',c:'c-layout',p:'h',q:'쌓임 순서를 지정하는 CSS 속성은?',a:'z-index',o:['z-index','depth','layer','z-order']},
+{t:'bk',c:'c-layout',p:'h',q:'Flexbox 활성화 빈칸은?',cd:'.container {\n  ___: flex;\n}',bk:'display',a:'display',o:['display','layout','position','flex']},
+{t:'bk',c:'c-layout',p:'h',q:'Grid 활성화 빈칸은?',cd:'.grid {\n  ___: grid;\n  grid-template-columns: 1fr 1fr;\n}',bk:'display',a:'display',o:['display','layout','grid','position']},
+{t:'bk',c:'c-layout',p:'h',q:'Flex 주축 가운데 정렬 빈칸은?',cd:'.row {\n  display: flex;\n  ___: center;\n}',bk:'justify-content',a:'justify-content',o:['justify-content','align-items','text-align','align']},
+{t:'bk',c:'c-layout',p:'h',q:'Flex 교차축 가운데 정렬 빈칸은?',cd:'.row {\n  display: flex;\n  ___: center;\n}',bk:'align-items',a:'align-items',o:['align-items','justify-content','align','flex-align']},
+{t:'bk',c:'c-layout',p:'h',q:'절대 위치 빈칸은?',cd:'.tooltip {\n  ___: absolute;\n  top: 0; right: 0;\n}',bk:'position',a:'position',o:['position','display','layout','place']},
+{t:'bk',c:'c-layout',p:'h',q:'왼쪽 플로트 빈칸은?',cd:'.img {\n  ___: left;\n  margin-right: 16px;\n}',bk:'float',a:'float',o:['float','position','align','display']},
+{t:'bk',c:'c-layout',p:'h',q:'z-index 속성 빈칸은?',cd:'.modal {\n  ___: 100;\n  position: fixed;\n}',bk:'z-index',a:'z-index',o:['z-index','depth','layer','order']},
+{t:'ty',c:'c-layout',p:'h',q:'요소 표시 방식 CSS 속성명을 입력하세요.',a:'display',ac:['display']},
+{t:'ty',c:'c-layout',p:'h',q:'요소 위치 방식 CSS 속성명을 입력하세요.',a:'position',ac:['position']},
+{t:'ty',c:'c-layout',p:'h',q:'Flexbox 주축 정렬 CSS 속성명을 입력하세요.',a:'justify-content',ac:['justify-content']},
+{t:'ty',c:'c-layout',p:'h',q:'Flexbox 교차축 정렬 CSS 속성명을 입력하세요.',a:'align-items',ac:['align-items']},
+{t:'ty',c:'c-layout',p:'h',q:'요소 띄우기 CSS 속성명을 입력하세요.',a:'float',ac:['float']},
+{t:'ty',c:'c-layout',p:'h',q:'쌓임 순서 CSS 속성명을 입력하세요.',a:'z-index',ac:['z-index']},
+{t:'ty',c:'c-layout',p:'h',q:'스크롤 고정 position 값을 입력하세요.',a:'fixed',ac:['fixed']},
+
+/* ━━━━ c-anim: transition·transform·animation·keyframes ━━━━ */
+{t:'fc',c:'c-anim',p:'h',q:'CSS 부드러운 전환 효과 속성은?',a:'transition',o:['transition','animation','transform','ease']},
+{t:'fc',c:'c-anim',p:'h',q:'요소 회전·이동·크기 변환 CSS 속성은?',a:'transform',o:['transform','transition','rotate','scale']},
+{t:'fc',c:'c-anim',p:'h',q:'키프레임 애니메이션을 적용하는 CSS 속성은?',a:'animation',o:['animation','transition','keyframe','motion']},
+{t:'fc',c:'c-anim',p:'h',q:'애니메이션 단계를 정의하는 CSS 규칙은?',a:'@keyframes',o:['@keyframes','@animation','@step','@frame']},
+{t:'fc',c:'c-anim',p:'h',q:'transform에서 45도 회전하는 함수는?',a:'rotate(45deg)',o:['rotate(45deg)','rotate(45)','spin(45)','turn(45deg)']},
+{t:'fc',c:'c-anim',p:'h',q:'transition 속성에서 지정하는 4가지 값 순서는?',a:'속성 지속시간 타이밍함수 지연',o:['속성 지속시간 타이밍함수 지연','색상 크기 위치 투명도','시작 끝 중간 반복','없음']},
+{t:'fc',c:'c-anim',p:'h',q:'transform에서 X·Y 방향으로 이동하는 함수는?',a:'translate(x, y)',o:['translate(x, y)','move(x,y)','offset(x,y)','position(x,y)']},
+{t:'fc',c:'c-anim',p:'l',q:'animation-iteration-count에서 무한 반복하는 값은?',a:'infinite',o:['infinite','loop','forever','repeat']},
+{t:'bk',c:'c-anim',p:'h',q:'전환 효과 속성 빈칸은?',cd:'.btn {\n  ___: all 0.3s ease;\n}',bk:'transition',a:'transition',o:['transition','animation','transform','ease']},
+{t:'bk',c:'c-anim',p:'h',q:'45도 회전 속성 빈칸은?',cd:'.icon {\n  ___: rotate(45deg);\n}',bk:'transform',a:'transform',o:['transform','rotate','transition','animation']},
+{t:'bk',c:'c-anim',p:'h',q:'애니메이션 적용 속성 빈칸은?',cd:'.spinner {\n  ___: spin 1s linear infinite;\n}',bk:'animation',a:'animation',o:['animation','transition','transform','keyframe']},
+{t:'bk',c:'c-anim',p:'h',q:'@keyframes 정의 빈칸은?',cd:'@___ spin {\n  from { transform: rotate(0deg); }\n  to   { transform: rotate(360deg); }\n}',bk:'keyframes',a:'keyframes',o:['keyframes','animation','frames','steps']},
+{t:'bk',c:'c-anim',p:'h',q:'크기 1.2배 확대 transform 빈칸은?',cd:'.card:hover {\n  ___: scale(1.2);\n}',bk:'transform',a:'transform',o:['transform','transition','animation','scale']},
+{t:'ty',c:'c-anim',p:'h',q:'CSS 전환 효과 속성명을 입력하세요.',a:'transition',ac:['transition']},
+{t:'ty',c:'c-anim',p:'h',q:'요소 변형 CSS 속성명을 입력하세요.',a:'transform',ac:['transform']},
+{t:'ty',c:'c-anim',p:'h',q:'키프레임 애니메이션 속성명을 입력하세요.',a:'animation',ac:['animation']},
+{t:'ty',c:'c-anim',p:'h',q:'애니메이션 단계 정의 CSS 규칙(@포함)을 입력하세요.',a:'@keyframes',ac:['@keyframes','keyframes']},
+{t:'ty',c:'c-anim',p:'h',q:'45도 회전 transform 값을 입력하세요.',a:'rotate(45deg)',ac:['rotate(45deg)']},
+{t:'ty',c:'c-anim',p:'l',q:'애니메이션 무한 반복 값을 입력하세요.',a:'infinite',ac:['infinite']},
+
+]; /* END QB */
+
+/* ════════ STATE ════════ */
+let G={
+  xp:0,level:0,streak:0,lastDate:null,
+  totalQ:0,totalCorrect:0,
+  topic:'all',mode:'mixed',
+  session:{qs:[],idx:0,correct:0,xpGained:0,combo:0,maxCombo:0,history:[]},
+  pendingLevelUp:false,answered:false,
+};
+
+/* ════════ SAVE/LOAD ════════ */
+function saveG(){try{sessionStorage.setItem(SK,JSON.stringify(G));}catch(e){}}
+function loadG(){
+  try{const r=sessionStorage.getItem(SK);if(r){const d=JSON.parse(r);G={...G,...d};}}catch(e){}
+}
+
+/* ════════ UTILS ════════ */
+function $(id){return document.getElementById(id);}
+function txt(id,v){const e=$(id);if(e)e.textContent=v;}
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function normQ(q){
+  const n={
+    t:q.t||'fc',c:q.c||'misc',p:q.p||'h',
+    q:q.q||'',a:q.a||'',
+    o:Array.isArray(q.o)?q.o:[],
+    ac:Array.isArray(q.ac)?q.ac:[q.a||''],
+    cd:q.cd||'',bk:q.bk||'',hint:q.hint||''
+  };
+  if((n.t==='fc'||n.t==='bk')&&n.o.length<2){
+    n.o=shuffle([n.a,'<div>','color','없음']).slice(0,4);
+  }
+  return n;
+}
+function calcLv(xp){
+  let lv=0;
+  for(let i=0;i<LEVELS.length-1;i++){if(xp>=LEVELS[i].max)lv=i+1;else break;}
+  return lv;
+}
+function xpInLv(xp,lv){
+  const base=lv>0?LEVELS[lv-1].max:0;
+  const top=LEVELS[lv].max===9999?base+1000:LEVELS[lv].max;
+  return{curr:xp-base,range:top-base};
+}
+
+/* ════════ UI ════════ */
+function refreshUI(){
+  const lv=G.level;
+  const lvd=LEVELS[Math.min(lv,LEVELS.length-1)];
+  const x=xpInLv(G.xp,lv);
+  const pct=Math.min(100,Math.round(x.curr/x.range*100));
+  const lvstr=`Lv.${lv+1} · ${lvd.name}`;
+  txt('h-xp',G.xp);txt('h-streak',G.streak);
+  txt('h-lv',lvstr);txt('h-lvfull',lvstr);
+  txt('h-xpcurr',x.curr);txt('h-xpmax',x.range);
+  const b=$('h-xpbar');if(b)b.style.width=pct+'%';
+  txt('q-streak',G.streak);txt('q-lv',lv+1);txt('q-xp',G.xp);
+  txt('r-streak',G.streak);txt('r-xp',G.xp);
+}
+
+/* ════════ CHIPS ════════ */
+function buildChips(){
+  const wrap=$('chipWrap');wrap.innerHTML='';
+  TOPICS.forEach(tp=>{
+    const n=tp.id==='all'?QB.length:QB.filter(q=>q.c===tp.id).length;
+    const chip=document.createElement('button');
+    chip.className='t-chip'+(G.topic===tp.id?' sel':'');
+    chip.innerHTML=`${tp.label} <span class="cnt">${n}</span>`;
+    chip.onclick=()=>{
+      document.querySelectorAll('.t-chip').forEach(c=>c.classList.remove('sel'));
+      chip.classList.add('sel');G.topic=tp.id;
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+/* ════════ HOME ════════ */
+function pickMode(el,m){
+  document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');G.mode=m;
+}
+
+/* ════════ SCREEN ════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.style.display='';
+  });
+  const el=$(id);
+  if(!el)return;
+  /* iOS Safari 렌더링 버그 워크어라운드 */
+  el.style.display='flex';
+  requestAnimationFrame(()=>{
+    el.classList.add('active');
+    window.scrollTo(0,0);
+  });
+}
+function goHome(){refreshUI();showScreen('homeScreen');saveG();}
+
+/* ════════ STREAK ════════ */
+function checkStreak(){
+  const today=new Date().toDateString();
+  if(G.lastDate===today)return;
+  const yd=new Date(Date.now()-86400000).toDateString();
+  G.streak=(G.lastDate===yd)?G.streak+1:1;
+  G.lastDate=today;
+}
+
+/* ════════ SESSION ════════ */
+function topicName(id){const t=TOPICS.find(x=>x.id===id);return t?t.label.replace(/^[^\s]+\s/,''):id;}
+function modeName(m){return{mixed:'혼합 모드',flashcard:'플래시카드',blank:'빈칸 채우기',typein:'직접 입력'}[m]||m;}
+
+function startSession(){
+  let pool;
+  if(G.topic==='all'){
+    pool=QB.filter(q=>q.p==='h'||Math.random()<0.3);
+  }else{
+    pool=QB.filter(q=>q.c===G.topic);
+  }
+  if(G.mode!=='mixed') pool=pool.filter(q=>q.t==={mixed:'mixed',flashcard:'fc',blank:'bk',typein:'ty'}[G.mode]);
+  if(!pool.length) pool=QB;
+  const qs=shuffle(pool).map(normQ).filter(q=>q.q&&q.a).slice(0,SL);
+  G.session={qs,idx:0,correct:0,xpGained:0,combo:0,maxCombo:0,history:[]};
+  G.answered=false;G.pendingLevelUp=false;
+  checkStreak();refreshUI();
+  txt('si-topic',topicName(G.topic));
+  txt('si-mode',modeName(G.mode));
+  showScreen('quizScreen');
+  renderQ();saveG();
+}
+
+/* ════════ RENDER Q ════════ */
+function renderQ(){
+  G.answered=false;
+  const s=G.session;const q=s.qs[s.idx];const total=s.qs.length;
+  txt('q-curr',s.idx+1);txt('q-total',total);
+  $('q-progfill').style.width=Math.round(s.idx/total*100)+'%';
+  $('prevBtn').disabled=(s.idx===0);
+
+  const tmap={fc:'🃏 플래시카드',bk:'⬜ 빈칸 채우기',ty:'⌨️ 직접 입력'};
+  const cmap={fc:'qt-flash',bk:'qt-blank',ty:'qt-type'};
+  const tt=$('qtTag');
+  tt.textContent=tmap[q.t]||q.t;tt.className='qt-tag '+(cmap[q.t]||'qt-flash');
+
+  $('qText').textContent=q.q;
+
+  const codeEl=$('qCode'),optsEl=$('qOpts'),typeRow=$('qTypeRow'),ti=$('tInp');
+  codeEl.style.display='none';
+  optsEl.innerHTML='';optsEl.className='opts';
+  typeRow.style.display='none';
+  ti.value='';ti.disabled=false;ti.className='t-inp';
+
+  if(q.t==='bk'){
+    codeEl.style.display='block';
+    codeEl.innerHTML=renderCode(q.cd);
+  }
+  if(q.t==='fc'||q.t==='bk'){
+    const opts=shuffle(q.o);
+    if(opts.length<=2)optsEl.classList.add('col1');
+    opts.forEach(o=>{
+      const b=document.createElement('button');
+      b.className='opt';b.textContent=o;
+      b.onclick=()=>pickOpt(b,o,q.a);
+      optsEl.appendChild(b);
+    });
+  }else{
+    typeRow.style.display='flex';
+    setTimeout(()=>{
+      ti.focus();
+      ti.scrollIntoView({behavior:'smooth',block:'nearest'});
+    },120);
+  }
+  if(q.hint)$('qHint').textContent='💡 '+q.hint;
+  else $('qHint').textContent='';
+
+  $('fb').className='fb';
+  $('nextBtn').className='next-btn';
+  $('prevRev').className='prev-rev';
+
+  const hist=s.history[s.idx];
+  if(hist) showHistFB(hist,q);
+  refreshUI();
+}
+
+function renderCode(cd){
+  let h=cd.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+         .replace(/___/g,'<span class="bslot">???</span>');
+  h=h.replace(/(&lt;\/?)([\w!]+)(&gt;)/g,'<span style="color:#c792ea">$1$2$3</span>')
+     .replace(/([\w-]+)(=)(&quot;[^&]*&quot;)/g,'<span style="color:#82aaff">$1</span>$2<span style="color:#c3e88d">$3</span>');
+  return h.replace(/\n/g,'<br>');
+}
+
+function showHistFB(hist,q){
+  G.answered=true;
+  const fb=$('fb');
+  if(hist.ok){
+    fb.className='fb ok show';fb.innerHTML='✓ 정답 (이전에 맞힘)';
+  }else{
+    fb.className='fb ng show';
+    fb.innerHTML=`✗ 오답 — 정답: <strong>${q.a||'데이터 없음'}</strong>`;
+  }
+  const pr=$('prevRev');pr.className='prev-rev show';
+  $('prevRevBody').innerHTML=`<span class="pr-lbl">내 답: </span><span class="${hist.ok?'pr-ok':'pr-ng'}">${hist.ya||'(없음)'}</span>`;
+  if(q.t==='fc'||q.t==='bk'){
+    document.querySelectorAll('.opt').forEach(b=>{
+      b.disabled=true;
+      if(b.textContent===q.a)b.classList.add('correct');
+      if(b.textContent===hist.ya&&!hist.ok)b.classList.add('wrong');
+    });
+  }else{
+    const ti=$('tInp');ti.value=hist.ya;ti.disabled=true;
+    ti.classList.add(hist.ok?'correct':'wrong');
+  }
+  $('nextBtn').className='next-btn show';
+}
+
+/* ════════ ANSWER ════════ */
+function pickOpt(btn,sel,correct){
+  if(G.answered)return;G.answered=true;
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===correct)b.classList.add('correct');
+  });
+  if(sel!==correct)btn.classList.add('wrong');
+  recHist(sel,sel===correct);
+  handleRes(sel===correct,correct);
+}
+
+function submitType(){
+  if(G.answered)return;
+  const q=G.session.qs[G.session.idx];
+  const raw=$('tInp').value;
+  const val=raw.trim().toLowerCase();
+  const acc=(q.ac||[q.a]).map(a=>(a||'').toLowerCase().trim());
+  /* 꺾쇠 제거 후도 비교 */
+  const valBare=val.replace(/^<|\/?>$/g,'').trim();
+  const ok=acc.some(a=>{
+    const abare=a.replace(/^<|\/?>$/g,'').trim();
+    return a===val||abare===valBare||abare===val||a===valBare;
+  });
+  G.answered=true;
+  const ti=$('tInp');ti.disabled=true;ti.classList.add(ok?'correct':'wrong');
+  recHist(raw.trim(),ok);
+  handleRes(ok,q.a);
+}
+
+function recHist(ya,ok){G.session.history[G.session.idx]={ya,ok};}
+
+function handleRes(ok,correct){
+  const s=G.session;const fb=$('fb');
+  if(ok){
+    s.combo++;s.maxCombo=Math.max(s.maxCombo,s.combo);
+    const bonus=s.combo>=3?Math.floor(s.combo/3)*5:0;
+    const xp=10+bonus;
+    G.xp+=xp;G.totalCorrect++;G.totalQ++;s.correct++;s.xpGained+=xp;
+    fb.className='fb ok show';
+    fb.innerHTML=`✓ 정답! <strong>+${xp} XP</strong>${bonus?` 🔥 콤보 +${bonus}`:''}`;
+    if(s.combo>=3){
+      const ef=$('comboFlash');ef.textContent=`🔥 ${s.combo} COMBO!`;
+      ef.classList.add('show');setTimeout(()=>ef.classList.remove('show'),1500);
+    }
+    if(calcLv(G.xp)>G.level){G.level=calcLv(G.xp);G.pendingLevelUp=true;}
+  }else{
+    s.combo=0;G.totalQ++;
+    fb.className='fb ng show';
+    fb.innerHTML=`✗ 오답. 정답: <strong>${correct!=null&&correct!==''?correct:'데이터 없음'}</strong>`;
+  }
+  $('nextBtn').className='next-btn show';
+  refreshUI();saveG();
+}
+
+/* ════════ NAV ════════ */
+function nextQ(){
+  if(G.pendingLevelUp){G.pendingLevelUp=false;showLvUp();return;}
+  G.session.idx++;
+  if(G.session.idx>=G.session.qs.length){endSess();return;}
+  renderQ();
+}
+function prevQ(){
+  if(G.session.idx<=0)return;
+  G.session.idx--;
+  renderQ();
+}
+
+/* ════════ END ════════ */
+function endSess(){
+  const s=G.session;const pct=Math.round(s.correct/s.qs.length*100);
+  txt('r-emoji',pct>=90?'🏆':pct>=70?'🎉':pct>=50?'👍':'😅');
+  txt('r-title','세션 완료!');
+  txt('r-sub',`${s.qs.length}문제 중 ${s.correct}개 정답 (${pct}%)`);
+  txt('r-correct',`${s.correct}/${s.qs.length}`);
+  txt('r-gained',`+${s.xpGained}`);
+  txt('r-combo',s.maxCombo);
+  showScreen('resultScreen');refreshUI();saveG();
+}
+
+/* ════════ LEVELUP ════════ */
+function showLvUp(){
+  const lv=G.level;const name=LEVELS[Math.min(lv,LEVELS.length-1)].name;
+  txt('modalTitle','레벨 업! 🎉');
+  txt('modalSub',`Lv.${lv+1} · ${name} 달성!`);
+  $('modalBg').classList.add('show');
+}
+function closeModal(){
+  $('modalBg').classList.remove('show');
+  G.session.idx++;
+  if(G.session.idx>=G.session.qs.length){endSess();return;}
+  renderQ();saveG();
+}
+
+/* ════════ KEYBOARD ════════ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(!G.answered){
+      const tr=$('qTypeRow');
+      if(tr&&tr.style.display!=='none')submitType();
+    }else{
+      const nb=$('nextBtn');
+      if(nb&&nb.classList.contains('show'))nextQ();
+    }
+  }
+});
+
+/* ════════ INIT ════════ */
+loadG();
+buildChips();
+refreshUI();
+/* mode 버튼 복원 */
+document.querySelectorAll('.m-btn').forEach(b=>{
+  const mMap={mixed:'mixed',flashcard:'fc',blank:'bk',typein:'ty'};
+  b.classList.toggle('sel',b.dataset.mode===G.mode);
+});
+</script>
+</body>
+</html>
